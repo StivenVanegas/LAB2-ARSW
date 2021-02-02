@@ -4,6 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainCanodromo {
 
@@ -12,6 +15,7 @@ public class MainCanodromo {
     private static Canodromo can;
 
     private static RegistroLlegada reg = new RegistroLlegada();
+	
 
     public static void main(String[] args) {
         can = new Canodromo(17, 100);
@@ -30,13 +34,21 @@ public class MainCanodromo {
                         //bloquear la interfaz gráfica.
                         ((JButton) e.getSource()).setEnabled(false);
                         new Thread() {
+							
                             public void run() {
                                 for (int i = 0; i < can.getNumCarriles(); i++) {
                                     //crea los hilos 'galgos'
                                     galgos[i] = new Galgo(can.getCarril(i), "" + i, reg);
                                     //inicia los hilos
                                     galgos[i].start();
-
+                                }
+								
+								for (int i = 0; i < can.getNumCarriles(); i++){
+                                    try {
+                                        galgos[i].join();
+                                    } catch (InterruptedException interruptedException) {
+                                        interruptedException.printStackTrace();
+                                    }
                                 }
                                
 				can.winnerDialog(reg.getGanador(),reg.getUltimaPosicionAlcanzada() - 1); 
@@ -51,8 +63,13 @@ public class MainCanodromo {
         can.setStopAction(
                 new ActionListener() {
                     @Override
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("Carrera pausada!");
+                    public  void actionPerformed(ActionEvent e) {
+						for(Galgo g: galgos){
+							g.setStop();
+						}
+						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+						Date date = new Date();
+                        System.out.println("Carrera pausada! "+ dateFormat.format(date));
                     }
                 }
         );
@@ -60,8 +77,13 @@ public class MainCanodromo {
         can.setContinueAction(
                 new ActionListener() {
                     @Override
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("Carrera reanudada!");
+                    public  void actionPerformed(ActionEvent e) {
+						for(Galgo g: galgos){
+							g.setContinue();
+						}
+						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+						Date date = new Date();
+                        System.out.println("Carrera reanudada! "+ dateFormat.format(date));
                     }
                 }
         );

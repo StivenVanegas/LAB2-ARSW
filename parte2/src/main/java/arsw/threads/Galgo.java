@@ -10,6 +10,7 @@ public class Galgo extends Thread {
 	private int paso;
 	private Carril carril;
 	RegistroLlegada regl;
+	private boolean stop = false;
 
 	public Galgo(Carril carril, String name, RegistroLlegada reg) {
 		super(name);
@@ -24,6 +25,12 @@ public class Galgo extends Thread {
 			carril.setPasoOn(paso++);
 			carril.displayPasos(paso);
 			
+			synchronized (this) {
+				while (stop) {
+					this.wait();
+				}
+			}
+			
 			if (paso == carril.size()) {						
 				carril.finish();
 				int ubicacion=regl.getUltimaPosicionAlcanzada();
@@ -37,7 +44,6 @@ public class Galgo extends Thread {
 		}
 	}
 
-
 	@Override
 	public void run() {
 		
@@ -48,5 +54,16 @@ public class Galgo extends Thread {
 		}
 
 	}
+	
+	public synchronized void setStop(){
+		this.stop = true;
+	}
+	
+	public synchronized void setContinue(){
+		this.stop = false;
+		notifyAll();
+	}
+	
+	
 
 }
